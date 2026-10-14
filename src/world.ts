@@ -7,13 +7,15 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { ARENA_RADIUS, PILLARS } from "./logic.js";
 
 export const COLORS = {
   ink: 0x07090c,
   gold: 0xf4c04a,
   teal: 0x3fd0c9,
-  metal: 0x2b323e,
+  metal: 0x4a5566,
+  horizon: 0x111a24,
 };
 
 export interface World {
@@ -31,21 +33,26 @@ export function createWorld(container: HTMLElement): World {
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.3;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap; // soft edges come from key.shadow.radius
   container.prepend(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(COLORS.ink);
-  scene.fog = new THREE.FogExp2(COLORS.ink, 0.028);
+  // A dusk sky: deep teal above, fading to the horizon colour the fog uses.
+  scene.background = skyTexture();
+  scene.fog = new THREE.FogExp2(COLORS.horizon, 0.02);
+  // Soft studio reflections, so metal reads as metal instead of black.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.45;
 
   const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 200);
   camera.position.set(0, 10, 16);
 
   // Light: a cool sky, a warm key that casts shadows, and coloured rims.
-  scene.add(new THREE.HemisphereLight(0x9fd8ff, 0x0b0d11, 0.7));
-  const key = new THREE.DirectionalLight(0xfff1d6, 1.6);
+  scene.add(new THREE.HemisphereLight(0xbfe8ff, 0x1a2230, 1.3));
+  const key = new THREE.DirectionalLight(0xfff1d6, 2.6);
   key.position.set(8, 16, 6);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -54,6 +61,9 @@ export function createWorld(container: HTMLElement): World {
   key.shadow.bias = -0.0004;
   key.shadow.radius = 4;
   scene.add(key);
+  const rimLight = new THREE.DirectionalLight(COLORS.teal, 1.1);
+  rimLight.position.set(-6, 8, -14);
+  scene.add(rimLight);
   const tealFill = new THREE.PointLight(COLORS.teal, 30, 30, 2);
   tealFill.position.set(-9, 4, -6);
   scene.add(tealFill);
@@ -64,14 +74,14 @@ export function createWorld(container: HTMLElement): World {
   // The floor: a dark disc with a fine grid that fades towards the edge.
   const floor = new THREE.Mesh(
     new THREE.CircleGeometry(ARENA_RADIUS + 0.4, 96),
-    new THREE.MeshStandardMaterial({ map: gridTexture(), roughness: 0.82, metalness: 0.25 }),
+    new THREE.MeshStandardMaterial({ map: gridTexture(), roughness: 0.7, metalness: 0.15 }),
   );
   floor.rotation.x = -Math.PI / 2;
   floor.receiveShadow = true;
   scene.add(floor);
   const plinth = new THREE.Mesh(
     new THREE.CylinderGeometry(ARENA_RADIUS + 0.4, ARENA_RADIUS + 0.9, 0.8, 96, 1, true),
-    new THREE.MeshStandardMaterial({ color: 0x0f1218, roughness: 0.6, metalness: 0.5 }),
+    new THREE.MeshStandardMaterial({ color: 0x252c37, roughness: 0.5, metalness: 0.4 }),
   );
   plinth.position.y = -0.4;
   scene.add(plinth);
@@ -92,7 +102,7 @@ export function createWorld(container: HTMLElement): World {
   }
 
   // Pillars: dark hexagonal columns with lit bands.
-  const pillarMaterial = new THREE.MeshStandardMaterial({ color: COLORS.metal, roughness: 0.38, metalness: 0.55 });
+  const pillarMaterial = new THREE.MeshStandardMaterial({ color: COLORS.metal, roughness: 0.42, metalness: 0.35 });
   const bandMaterial = new THREE.MeshStandardMaterial({ color: COLORS.teal, emissive: COLORS.teal, emissiveIntensity: 1.4 });
   for (const p of PILLARS) {
     const pillar = new THREE.Group();
@@ -152,8 +162,8 @@ function gridTexture(): THREE.CanvasTexture {
   const ctx = canvas.getContext("2d")!;
   const c = size / 2;
   const base = ctx.createRadialGradient(c, c, 0, c, c, c);
-  base.addColorStop(0, "#232a35");
-  base.addColorStop(1, "#0d1015");
+  base.addColorStop(0, "#3a4554");
+  base.addColorStop(1, "#1a212b");
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, size, size);
   ctx.save();
@@ -164,7 +174,7 @@ function gridTexture(): THREE.CanvasTexture {
   ctx.lineWidth = 1.5;
   for (let i = 0; i <= 26; i++) {
     const v = i * step;
-    ctx.strokeStyle = "rgba(63,208,201,0.16)";
+    ctx.strokeStyle = "rgba(63,208,201,0.24)";
     ctx.beginPath();
     ctx.moveTo(v, 0);
     ctx.lineTo(v, size);
@@ -180,13 +190,29 @@ function gridTexture(): THREE.CanvasTexture {
     ctx.stroke();
   }
   const fade = ctx.createRadialGradient(c, c, c * 0.55, c, c, c);
-  fade.addColorStop(0, "rgba(13,16,21,0)");
-  fade.addColorStop(1, "rgba(13,16,21,0.85)");
+  fade.addColorStop(0, "rgba(26,33,43,0)");
+  fade.addColorStop(1, "rgba(26,33,43,0.7)");
   ctx.fillStyle = fade;
   ctx.fillRect(0, 0, size, size);
   ctx.restore();
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
+  return tex;
+}
+
+function skyTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 2;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d")!;
+  const g = ctx.createLinearGradient(0, 0, 0, 512);
+  g.addColorStop(0, "#0b2a33");
+  g.addColorStop(0.55, "#132230");
+  g.addColorStop(1, "#111a24");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 2, 512);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }

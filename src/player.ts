@@ -22,7 +22,7 @@ export class Player {
     } else {
       const shell = new THREE.Mesh(
         new THREE.CapsuleGeometry(0.42, 0.5, 8, 24),
-        new THREE.MeshPhysicalMaterial({ color: 0x232833, metalness: 0.65, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.2 }),
+        new THREE.MeshPhysicalMaterial({ color: 0x5a6578, metalness: 0.55, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.15 }),
       );
       shell.castShadow = true;
       const visor = new THREE.Mesh(
