@@ -44,7 +44,7 @@ export async function createApp(options: AppOptions = {}): Promise<App> {
     const vite = await createViteServer({
       root,
       appType: "spa",
-      server: { middlewareMode: true, hmr: { server: httpServer } },
+      server: { middlewareMode: true, ws: { server: httpServer } },
     });
     page = (req, res) => vite.middlewares(req, res);
     closeVite = () => vite.close();

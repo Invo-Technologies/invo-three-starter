@@ -1,5 +1,7 @@
 # Shard Arena: a Three.js starter with INVO built in
 
+[![Open in Replit](https://replit.com/badge?caption=Open%20in%20Replit)](https://replit.com/github.com/Invo-Technologies/invo-three-starter)
+
 A minimal, forkable 3D arena game in **Three.js + TypeScript** with INVO's game economy already wired in:
 
 - a wallet in two currencies
