@@ -112,14 +112,16 @@ addEventListener("keydown", (e) => {
 });
 
 // ---------------------------------------------------------------- the loop
-const clock = new THREE.Clock();
+const timer = new THREE.Timer();
+timer.connect(document); // pauses cleanly while the tab is hidden
 const camTarget = new THREE.Vector3();
 const camPos = new THREE.Vector3();
 const projected = new THREE.Vector3();
 let orbit = 0;
 
-function frame() {
-  const dt = Math.min(clock.getDelta(), 0.05);
+function frame(time: number) {
+  timer.update(time);
+  const dt = Math.min(timer.getDelta(), 0.05);
   const playing = state === "play" && !invo.paused; // the clock stops while a dialog is open
 
   player.update(dt, input.direction, playing);
