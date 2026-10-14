@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.data/
+# INVO project file: holds this copy's webhook secret. Never commit it.
+.invo/
+.env
+.env.*
+!.env.example
