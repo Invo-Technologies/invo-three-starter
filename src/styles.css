@@ -47,6 +47,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ink); 
 .btn.gold:hover { filter: brightness(1.06); background: linear-gradient(180deg, #ffde8a, var(--gold) 55%, #d99d27); }
 .btn.small { height: 46px; font-size: 14px; }
 .btn svg { width: 16px; height: 16px; }
+.live-only { position: absolute; top: -9px; right: 14px; padding: 4px 8px; border-radius: 999px; font: 800 9px/1 var(--ui); letter-spacing: 0.14em; text-transform: uppercase; color: #1a1405; background: linear-gradient(180deg, #ffde8a, var(--gold)); box-shadow: 0 4px 12px -4px rgba(244, 192, 74, 0.8); }
 
 .chip { display: inline-flex; align-items: center; gap: 9px; height: 36px; padding: 0 16px; border-radius: 999px; font: 600 13px var(--ui); color: var(--muted); background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 18%, transparent); }

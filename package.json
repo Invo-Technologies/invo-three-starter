@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@invonetwork/three": "^1.0.0",
-    "@invonetwork/web-sdk": "^3.29.1",
+    "@invonetwork/web-sdk": "^3.30.0",
     "pg": "^8.23.1",
     "three": "^0.186.1",
     "tsx": "^4.23.15"

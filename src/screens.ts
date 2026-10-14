@@ -44,9 +44,11 @@ export function loadingScreen(root: HTMLElement) {
   return Object.assign(s, { progress: (f: number) => void (fill.style.width = `${Math.round(f * 100)}%`) });
 }
 
-export function menuScreen(root: HTMLElement, actions: { play(): void; shop(): void; signIn(): void }) {
+export function menuScreen(root: HTMLElement, actions: { play(): void; shop(): void; transfer(): void; signIn(): void }) {
   const s = new Screen(root, "scrim");
   const status = h("div");
+  const liveOnly = h("span", { class: "live-only", text: "Live only" });
+  liveOnly.hidden = true;
   s.el.append(
     h(
       "div",
@@ -62,13 +64,26 @@ export function menuScreen(root: HTMLElement, actions: { play(): void; shop(): v
           b.append(icon(PLAY_SVG, ""), document.createTextNode("Play"));
           return b;
         })(),
-        h("button", { class: "btn", text: "Shop", onclick: actions.shop }),
+        h(
+          "div",
+          { class: "btn-row" },
+          h("button", { class: "btn", text: "Shop", onclick: actions.shop }),
+          (() => {
+            // INVO: transfers and sends (INVO's dialog). "Live only" when this key has them off.
+            const b = h("button", { class: "btn", onclick: actions.transfer });
+            b.append(document.createTextNode("⇄ Transfer"), liveOnly);
+            return b;
+          })(),
+        ),
       ),
       status,
       h("div", { class: "keys" }, h("span", { class: "key", text: "W" }), h("span", { class: "key", text: "A" }), h("span", { class: "key", text: "S" }), h("span", { class: "key", text: "D" }), document.createTextNode("or drag to move")),
     ),
   );
   return Object.assign(s, {
+    setTransfersEnabled(enabled: boolean) {
+      liveOnly.hidden = enabled;
+    },
     setPlayer(name: string | null, best: number) {
       status.replaceChildren(
         name

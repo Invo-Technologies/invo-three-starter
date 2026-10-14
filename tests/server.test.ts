@@ -72,12 +72,14 @@ describe("template server on the public demo key", () => {
     const health = await (await get("/api/invo/health")).text();
     expect(JSON.parse(health)).toMatchObject({ setupRequired: false, sandbox: true });
     expect(health).not.toContain("whsec_demo_test");
+    // Transfers and sends are on with the demo key, between players of this project.
+    expect(await (await get("/api/invo/transfers/status")).json()).toMatchObject({ enabled: true, demo: true, scope: "project" });
 
     const session = await get("/api/invo/session", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: "Real.Person@gmail.com", phone: "+447700900123" }) });
     expect(session.status).toBe(200);
     const mint = invo.calls.find((c) => c.url.endsWith("/api/sdk/player-token"))!;
     expect(String(mint.body["player_email"])).toMatch(/@demo\.invo\.network$/);
-    expect(String(mint.body["player_phone"])).toMatch(/^\+1202555/);
+    expect(String(mint.body["player_phone"])).toMatch(/^\+1\d{3}55501\d{2}$/); // any fictional NPA-555-01XX
     expect(mint.headers.get("x-invo-project-id")).toBe(app!.invo.projectId);
   });
 
@@ -94,9 +96,10 @@ describe("template server on the public demo key", () => {
 
   it("goes live by swapping the secrets: no registration, no demo key", async () => {
     const invo = fakeInvo();
-    await boot({ INVO_GAME_SECRET: "live-secret", INVO_WEBHOOK_SECRET: "whsec_live", INVO_ENV: "production" }, invo.fetchImpl);
+    const get = await boot({ INVO_GAME_SECRET: "live-secret", INVO_WEBHOOK_SECRET: "whsec_live", INVO_ENV: "production" }, invo.fetchImpl);
     expect(app!.invo.demo).toBe(false);
     expect(app!.invo.setup.environment).toBe("production");
+    expect(await (await get("/api/invo/transfers/status")).json()).toMatchObject({ enabled: true, scope: "network" });
     expect(invo.calls.some((c) => c.url.endsWith("/api/demo/projects/register"))).toBe(false);
   });
 
