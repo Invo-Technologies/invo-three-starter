@@ -47,10 +47,10 @@ let state: State = "loading";
 let round = new RoundClock();
 let collected = 0;
 
-const menu = menuScreen(root, { play: () => startRound(), shop: () => enterLoadout(), transfer: () => invo.ui?.openTransfers(), signIn: () => invo.ui?.openSignIn() });
+const menu = menuScreen(root, { play: () => startRound(), shop: () => openShop(), transfer: () => invo.ui?.openTransfers(), signIn: () => invo.ui?.openSignIn() });
 void economy.transferStatus().then((s) => menu.setTransfersEnabled(s.enabled));
 const hudView = createHud(root);
-const results = resultsScreen(root, { again: () => startRound(), shop: () => enterLoadout(), menu: () => enterMenu(), signIn: () => invo.ui?.openSignIn() });
+const results = resultsScreen(root, { again: () => startRound(), shop: () => openShop(), menu: () => enterMenu(), signIn: () => invo.ui?.openSignIn() });
 const loadout = loadoutScreen(root, economy, { open: (c) => invo.ui?.openShop(c), gems: () => invo.ui?.openBuyCurrency(), back: () => enterMenu() });
 
 const refreshPlayer = () => {
@@ -79,6 +79,12 @@ function enterMenu() {
 function enterLoadout() {
   refreshPlayer();
   show("loadout");
+}
+
+/** "Shop" opens INVO's shop straight away; closing it leaves the loadout close-up behind it. */
+function openShop() {
+  enterLoadout();
+  invo.ui?.openShop();
 }
 
 async function startRound() {
